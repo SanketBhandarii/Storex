@@ -1,5 +1,6 @@
 package com.stationery_management.sm.controller;
 
+import com.stationery_management.sm.dto.LoginRequest;
 import com.stationery_management.sm.dto.RegisterRequest;
 import com.stationery_management.sm.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +24,16 @@ public class Auth {
     public ResponseEntity<String> verifyAccount(@RequestParam String token) {
         String message = userservice.verifyToken(token);
         return ResponseEntity.ok(message);
+    }
+
+       @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        String jwt = userservice.login(request);
+
+        if (jwt.equals("User not found") || jwt.equals("Invalid credentials") || jwt.equals("Email not verified. Please check your inbox.")) {
+            return ResponseEntity.status(401).body(jwt);
+        }
+
+        return ResponseEntity.ok(jwt); // return JWT token
     }
 }

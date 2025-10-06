@@ -1,5 +1,6 @@
 package com.stationery_management.sm.service;
 
+import com.stationery_management.sm.dto.LoginRequest;
 import com.stationery_management.sm.dto.RegisterRequest;
 import com.stationery_management.sm.dto.VerificationToken;
 import com.stationery_management.sm.entity.Role;
@@ -14,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.stationery_management.sm.service.JWTService;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -22,6 +25,7 @@ public class UserService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final JWTService JWTService;
 
     public String registerUser(RegisterRequest req){
         if(userRepository.findByEmail(req.getEmail()).isPresent()){
@@ -53,6 +57,28 @@ public class UserService {
         emailService.sendEmail(user.getEmail(), "Verify your account", emailBody);
 
         return "Registration successful! Check your email for verification link.";
+    }
+
+    public String login(LoginRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+
+        if (optionalUser.isEmpty()) {
+            return "User not found";
+        }
+
+        User user = optionalUser.get();
+
+        if (!user.isEnabled()) {
+            return "Email not verified. Please check your inbox.";
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return "Invalid credentials";
+        }
+
+        // Generate JWT token
+        String jwtToken = JWTService.generateToken(user.getEmail());
+        return jwtToken; // return token only
     }
 
     public String verifyToken(String token) {
