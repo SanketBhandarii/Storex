@@ -18,7 +18,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -29,5 +29,5 @@ public class User {
     private boolean enabled = false;
 
     @Enumerated(EnumType.STRING)
-    private Role Role;
+    private Role role;
 }

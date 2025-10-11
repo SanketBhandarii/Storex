@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-public class Auth {
+public class AuthController {
 
     private final UserService userservice;
 
@@ -41,7 +40,7 @@ public class Auth {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(24 * 60 * 60)
+                .maxAge(10 * 60 * 60)
                 .sameSite("Lax")
                 .build();
 
@@ -62,6 +61,6 @@ public class Auth {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("Logged out");
+                .body("Logged out successfully");
     }
 }

@@ -1,5 +1,6 @@
 package com.stationery_management.sm.service;
 
+import com.stationery_management.sm.config.JwtService;
 import com.stationery_management.sm.dto.LoginRequest;
 import com.stationery_management.sm.dto.RegisterRequest;
 import com.stationery_management.sm.dto.VerificationToken;
@@ -15,8 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.stationery_management.sm.service.JWTService;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -25,7 +24,7 @@ public class UserService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final JWTService JWTService;
+    private final JwtService jwtService;
 
     public String registerUser(RegisterRequest req){
         if(userRepository.findByEmail(req.getEmail()).isPresent()){
@@ -36,7 +35,8 @@ public class UserService {
                 .fullname(req.getFullname())
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .Role(Role.USER)
+                .role(Role.USER)
+                .enabled(false)
                 .build();
 
         userRepository.save(user);
@@ -76,9 +76,7 @@ public class UserService {
             return "Invalid credentials";
         }
 
-        // Generate JWT token
-        String jwtToken = JWTService.generateToken(user.getEmail());
-        return jwtToken; // return token only
+        return jwtService.generateToken(user.getEmail());
     }
 
     public String verifyToken(String token) {
@@ -95,6 +93,8 @@ public class UserService {
         User user = verificationToken.getUser();
         user.setEnabled(true);
         userRepository.save(user);
+
+        tokenRepository.delete(verificationToken);
 
         return "Email verified successfully! You can now login.";
     }
